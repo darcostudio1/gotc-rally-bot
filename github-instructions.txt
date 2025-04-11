@@ -1,0 +1,40 @@
+# GitHub Deployment Instructions
+
+## Step 1: Create a GitHub repository
+1. Go to https://github.com/new
+2. Name your repository "gotc-rally-bot"
+3. Optional: Add a description
+4. Choose whether it should be public or private
+5. Don't initialize with README, .gitignore, or license (since we already have those)
+6. Click "Create repository"
+
+## Step 2: Connect your local repository to GitHub
+
+### Option 1: Using HTTPS (Requires username/password or personal access token)
+```
+git remote add origin https://github.com/YOUR_USERNAME/gotc-rally-bot.git
+git push -u origin main
+```
+
+### Option 2: Using SSH (Requires SSH key setup but more secure)
+```
+git remote add origin git@github.com:YOUR_USERNAME/gotc-rally-bot.git
+git push -u origin main
+```
+
+Replace YOUR_USERNAME with your actual GitHub username.
+
+## Step 3: Authentication
+
+### For HTTPS
+- If you have 2FA enabled on GitHub, you'll need to use a personal access token instead of password
+- Go to GitHub > Settings > Developer settings > Personal access tokens > Generate new token
+- Select at least the "repo" scope
+- Use the token as your password when prompted
+
+### For SSH
+- Ensure you have added your SSH key to GitHub
+- Go to GitHub > Settings > SSH and GPG keys > New SSH key
+
+## Step 4: Verify
+After pushing, refresh your GitHub repository page to see your code. 
