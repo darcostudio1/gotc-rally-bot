@@ -25,3 +25,10 @@ yarn-error.log*
 # OS specific
 .DS_Store
 Thumbs.db
+
+# Docker
+docker-compose.override.yml
+
+# Build outputs
+dist/
+build/
