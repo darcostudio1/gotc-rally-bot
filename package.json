@@ -5,11 +5,10 @@
     "main": "index.js",
     "scripts": {
         "start": "node index.js",
-        "start:replit": "node replit_index.js",
         "dev": "nodemon index.js"
     },
     "engines": {
-        "node": ">=18.0.0"
+        "node": ">=16.6.0"
     },
     "dependencies": {
         "@discordjs/core": "^2.0.1",

@@ -9,15 +9,6 @@ package-lock.json
 .env.test.local
 .env.production.local
 
-# Replit
-.replit.nix
-.config/
-.upm/
-.cache/
-.breakpoints
-replit.nix
-replit_nix/
-
 # Logs
 logs/
 *.log

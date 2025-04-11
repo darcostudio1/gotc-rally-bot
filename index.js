@@ -3,9 +3,9 @@ const { Client, GatewayIntentBits, Partials, Events, ActionRowBuilder,
     ButtonBuilder, ButtonStyle, EmbedBuilder, SlashCommandBuilder } = require('discord.js');
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v10');
-// We'll use axios for HTTP requests
-const axios = require('axios');
+const { fetch } = require('undici');
 require('dotenv').config();
+const express = require('express');
 const { createServer } = require('http');
 const { InteractionType, InteractionResponseType } = require('discord-api-types/v10');
 const { verifyKey } = require('discord-interactions');
@@ -495,229 +495,88 @@ ephemeral: true
 });
 }
 
-// Create HTTP server for handling Discord interactions
-const server = createServer((req, res) => {
-  if (req.url === '/') {
-    if (req.method === 'GET') {
-      res.statusCode = 200;
-      res.setHeader('Content-Type', 'text/plain');
-      res.end('Discord bot is running!');
-      return;
-    }
-    
-    if (req.method === 'POST') {
-      const signature = req.headers['x-signature-ed25519'];
-      const timestamp = req.headers['x-signature-timestamp'];
-      
-      let body = '';
-      req.on('data', chunk => {
-        body += chunk.toString();
-      });
-      
-      req.on('end', () => {
-        try {
-          // Verify the request
-          const isValidRequest = verifyKey(
-            body,
-            signature,
-            timestamp,
-            process.env.DISCORD_PUBLIC_KEY
-          );
-          
-          if (!isValidRequest) {
-            res.statusCode = 401;
-            res.end('Invalid signature');
-            return;
-          }
-          
-          const interaction = JSON.parse(body);
-          
-          // Handle verification requests (ping)
-          if (interaction.type === InteractionType.Ping) {
-            console.log('Received ping from Discord - responding with pong');
-            res.setHeader('Content-Type', 'application/json');
-            res.end(JSON.stringify({ type: InteractionResponseType.Pong }));
-            return;
-          }
-          
-          // For command interactions (like /startrollcall)
-          if (interaction.type === InteractionType.ApplicationCommand) {
-            const { data } = interaction;
-            console.log(`Received command: ${data.name}`);
-            
-            // Simulate an interaction object for our handlers
-            const simulatedInteraction = {
-              commandName: data.name,
-              options: {
-                getString: (name) => {
-                  const option = data.options?.find(opt => opt.name === name);
-                  return option ? option.value : null;
-                }
-              },
-              guildId: interaction.guild_id,
-              channelId: interaction.channel_id,
-              user: interaction.member?.user,
-              member: interaction.member,
-              guild: client.guilds.cache.get(interaction.guild_id),
-              reply: (replyOptions) => {
-                // Convert Discord.js reply format to API response
-                const responseData = {
-                  type: InteractionResponseType.ChannelMessageWithSource,
-                  data: {}
-                };
-                
-                if (replyOptions.content) {
-                  responseData.data.content = replyOptions.content;
-                }
-                
-                if (replyOptions.embeds) {
-                  // Convert Discord.js embeds to API format
-                  responseData.data.embeds = replyOptions.embeds.map(embed => embed.toJSON());
-                }
-                
-                if (replyOptions.components) {
-                  // Convert Discord.js components to API format
-                  responseData.data.components = replyOptions.components.map(row => row.toJSON());
-                }
-                
-                if (replyOptions.ephemeral) {
-                  responseData.data.flags = 64; // Ephemeral flag
-                }
-                
-                console.log('Sending interaction response');
-                res.setHeader('Content-Type', 'application/json');
-                res.end(JSON.stringify(responseData));
-                
-                // Return a mock message for fetchReply
-                return { id: 'mock-message-id' };
-              },
-              // Mock other methods as needed
-              deferReply: () => {},
-              followUp: () => {},
-              update: () => {}
-            };
-            
-            // Route to the appropriate handler
-            if (data.name === 'startrollcall') {
-              handleStartRollCall(simulatedInteraction);
-            } else if (data.name === 'endrollcall') {
-              handleEndRollCall(simulatedInteraction);
-            } else if (data.name === 'inforollcall') {
-              handleInfoRollCall(simulatedInteraction);
-            } else {
-              // Unknown command
-              res.setHeader('Content-Type', 'application/json');
-              res.end(JSON.stringify({
-                type: InteractionResponseType.ChannelMessageWithSource,
-                data: { content: `Command '${data.name}' not recognized.` }
-              }));
-            }
-            
-            return;
-          }
-          
-          // For button interactions
-          if (interaction.type === InteractionType.MessageComponent) {
-            const { data } = interaction;
-            console.log(`Received component interaction: ${data.custom_id}`);
-            
-            // Simulate an interaction object for button handlers
-            const simulatedButtonInteraction = {
-              customId: data.custom_id,
-              guildId: interaction.guild_id,
-              user: interaction.member.user,
-              guild: client.guilds.cache.get(interaction.guild_id),
-              reply: (replyOptions) => {
-                const responseData = {
-                  type: InteractionResponseType.ChannelMessageWithSource,
-                  data: {}
-                };
-                
-                if (replyOptions.content) {
-                  responseData.data.content = replyOptions.content;
-                }
-                
-                if (replyOptions.embeds) {
-                  responseData.data.embeds = replyOptions.embeds.map(embed => embed.toJSON());
-                }
-                
-                if (replyOptions.ephemeral) {
-                  responseData.data.flags = 64; // Ephemeral flag
-                }
-                
-                res.setHeader('Content-Type', 'application/json');
-                res.end(JSON.stringify(responseData));
-              },
-              update: (updateOptions) => {
-                const responseData = {
-                  type: InteractionResponseType.UpdateMessage,
-                  data: {}
-                };
-                
-                if (updateOptions.components) {
-                  responseData.data.components = updateOptions.components.map(row => row.toJSON());
-                }
-                
-                res.setHeader('Content-Type', 'application/json');
-                res.end(JSON.stringify(responseData));
-              },
-              followUp: (followupOptions) => {
-                // In a real implementation, this would send a follow-up message
-                // For now, we just acknowledge it
-                console.log('Follow-up message would be sent here');
-              }
-            };
-            
-            // Handle the button click
-            if (data.custom_id === 'availableBtn') {
-              handleAvailableButton(simulatedButtonInteraction);
-            } else {
-              // Unknown button
-              res.setHeader('Content-Type', 'application/json');
-              res.end(JSON.stringify({
-                type: InteractionResponseType.UpdateMessage,
-                data: { content: 'Unknown button interaction.' }
-              }));
-            }
-            
-            return;
-          }
-          
-          // Default response for unhandled interaction types
-          console.log('Unhandled interaction type:', interaction.type);
-          res.setHeader('Content-Type', 'application/json');
-          res.end(JSON.stringify({ 
-            type: InteractionResponseType.ChannelMessageWithSource, 
-            data: { content: 'Received your interaction, but not sure how to process it.' } 
-          }));
-        } catch (error) {
-          console.error('Error handling interaction:', error);
-          res.statusCode = 400;
-          res.end('Error processing request');
-        }
-      });
-    } else {
-      res.statusCode = 405;
-      res.end('Method not allowed');
-    }
-  } else {
-    res.statusCode = 404;
-    res.end('Not found');
-  }
-});
-
-// Start the server if in standalone mode (not Replit)
-if (!process.env.REPLIT) {
+// Optional: Set up an Express server for handling Discord interactions via webhook
+// This is useful if you want to use Discord's Interactions Endpoint URL feature
+// You can remove this if you're only using the client-based approach above
+function setupExpressServer() {
+  const app = express();
   const PORT = process.env.PORT || 3000;
-  server.listen(PORT, '0.0.0.0', () => {
-    console.log(`Server running on port ${PORT}`);
+
+  // Configure middleware
+  app.use(express.json({ verify: (req, res, buf) => {
+    // Store the raw buffer for signature verification
+    req.rawBody = buf;
+  }}));
+
+  // Home route
+  app.get('/', (req, res) => {
+    res.send('Discord bot is running!');
   });
+
+  // Health check route
+  app.get('/health', (req, res) => {
+    res.status(200).send('OK');
+  });
+
+  // Discord interactions endpoint
+  app.post('/interactions', (req, res) => {
+    const signature = req.headers['x-signature-ed25519'];
+    const timestamp = req.headers['x-signature-timestamp'];
+    
+    try {
+      // Verify the request if we have a signature and timestamp
+      if (signature && timestamp && req.rawBody) {
+        const isValidRequest = verifyKey(
+          req.rawBody,
+          signature,
+          timestamp,
+          process.env.DISCORD_PUBLIC_KEY
+        );
+        
+        if (!isValidRequest) {
+          res.status(401).send('Invalid signature');
+          return;
+        }
+        
+        // Parse the interaction (already parsed by express.json middleware)
+        const interaction = req.body;
+        
+        // Handle verification requests (ping)
+        if (interaction.type === InteractionType.Ping) {
+          console.log('Received ping from Discord - responding with pong');
+          res.setHeader('Content-Type', 'application/json');
+          res.send({ type: InteractionResponseType.Pong });
+          return;
+        }
+        
+        // Acknowledge the interaction with a deferred response
+        // The actual handling happens through the Discord.js client
+        res.setHeader('Content-Type', 'application/json');
+        res.send({ 
+          type: InteractionResponseType.DeferredChannelMessageWithSource 
+        });
+      } else {
+        res.status(400).send('Missing signature, timestamp headers or request body');
+      }
+    } catch (error) {
+      console.error('Error handling Discord interaction:', error);
+      res.status(500).send('Internal Server Error');
+    }
+  });
+
+  // Start the server
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Express server running on port ${PORT}`);
+  });
+}
+
+// Determine if Express server should be set up
+// You can enable this by setting USE_EXPRESS=true in your .env
+if (process.env.USE_EXPRESS === 'true') {
+  setupExpressServer();
 }
 
 // Login to Discord
 client.login(process.env.DISCORD_TOKEN)
   .then(() => console.log('Discord bot logged in successfully'))
   .catch(err => console.error('Error logging in to Discord:', err));
-
-// Export the server for use in other files
-module.exports = server;
