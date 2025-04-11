@@ -78,6 +78,16 @@ You can deploy the bot to any Node.js hosting service:
 - Azure
 - Any other Node.js compatible hosting
 
+## Dependencies
+
+This bot uses the following key dependencies:
+
+- **discord.js**: Core Discord API wrapper
+- **express**: Web server for the keep-alive functionality
+- **dotenv**: Environment variable management
+- **undici**: Modern HTTP/1.1 client with fetch API support
+- **discord-interactions**: For verifying Discord interaction signatures
+
 ## Local Development
 
 1. Clone the repository
