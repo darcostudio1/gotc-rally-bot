@@ -3,6 +3,7 @@ const { Client, GatewayIntentBits, Partials, Events, ActionRowBuilder,
     ButtonBuilder, ButtonStyle, EmbedBuilder, SlashCommandBuilder } = require('discord.js');
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v10');
+const { fetch } = require('undici');
 require('dotenv').config();
 const { createServer } = require('http');
 const { InteractionType, InteractionResponseType } = require('discord-api-types/v10');

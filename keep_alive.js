@@ -3,6 +3,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const { InteractionType, InteractionResponseType } = require('discord-api-types/v10');
 const { verifyKey } = require('discord-interactions');
+const { fetch } = require('undici');
 
 // Configure middleware
 app.use(express.json({ verify: (req, res, buf) => {
