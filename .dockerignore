@@ -1,0 +1,31 @@
+# Git
+.git
+.github
+.gitignore
+
+# Node.js
+node_modules
+npm-debug.log
+
+# Environment variables
+.env
+.env.*
+.env-example
+
+# Docker
+Dockerfile
+docker-compose.yml
+docker-compose.override.yml
+
+# IDE/Editor folders
+.vscode
+.idea
+*.swp
+*.swo
+
+# Documentation
+README.md
+LICENSE
+
+# Node.js version management
+.nvmrc 
