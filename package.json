@@ -9,7 +9,7 @@
         "dev": "nodemon index.js"
     },
     "engines": {
-        "node": ">=16.6.0"
+        "node": ">=18.0.0"
     },
     "dependencies": {
         "@discordjs/core": "^2.0.1",
