@@ -1,0 +1,28 @@
+{
+    "name": "gotc-rally-bot",
+    "version": "1.0.0",
+    "description": "A Discord bot for creating a rollcall to rally for GOTC",
+    "main": "index.js",
+    "scripts": {
+        "start": "node index.js",
+        "start:replit": "node replit_index.js",
+        "dev": "nodemon index.js"
+    },
+    "engines": {
+        "node": ">=16.6.0"
+    },
+    "dependencies": {
+        "@discordjs/core": "^2.0.1",
+        "@discordjs/rest": "^2.0.1",
+        "axios": "^1.8.4",
+        "discord-api-types": "^0.37.120",
+        "discord-interactions": "^3.4.0",
+        "discord.js": "^14.13.0",
+        "dotenv": "^16.5.0",
+        "express": "^4.18.2",
+        "tweetnacl": "^1.0.3"
+    },
+    "devDependencies": {
+        "nodemon": "^3.0.1"
+    }
+}
